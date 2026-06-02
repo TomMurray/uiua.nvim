@@ -15,11 +15,45 @@ Minimal Neovim support for the [Uiua](https://www.uiua.org) array language.
 The `uiua` binary on `$PATH` (`cargo install uiua`). Formatting and the LSP are
 silently skipped if it is missing.
 
-## Options (set before the plugin loads)
+## Installation
+
+With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
-vim.g.uiua_format_on_save = false  -- disable format on save (default: enabled)
-vim.g.uiua_lsp = false             -- disable the LSP client  (default: enabled)
+{
+  "TomMurray/uiua.nvim",
+  ft = "uiua",
+  opts = {},
+}
+```
+
+The `opts` table is passed to `require("uiua").setup()`. For other plugin
+managers, call it yourself: `require("uiua").setup({ ... })`.
+
+## Options
+
+Defaults shown:
+
+```lua
+opts = {
+  format_on_save = true,  -- run `uiua fmt` before each write
+  lsp = true,             -- attach the official `uiua lsp` server
+  server = {},            -- extra config merged into vim.lsp.start
+                          -- (e.g. on_attach, capabilities, root_dir)
+}
+```
+
+Example — turn off format on save and add an `on_attach`:
+
+```lua
+opts = {
+  format_on_save = false,
+  server = {
+    on_attach = function(client, bufnr)
+      -- your keymaps …
+    end,
+  },
+}
 ```
 
 ## Commands

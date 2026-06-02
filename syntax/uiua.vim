@@ -26,7 +26,7 @@ syntax match uiuaConstant "[ηπτ∞]"
 syntax match uiuaIdent "\<[A-Za-z][A-Za-z0-9_]*\>"
 
 " Bindings and signatures
-syntax match uiuaBinding "←\|↚\|~\|≔"
+syntax match uiuaBinding "[←↚≔~]"
 syntax match uiuaSignature "|"
 
 " --- Primitive glyphs by arity ---

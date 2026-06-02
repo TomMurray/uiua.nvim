@@ -1,5 +1,22 @@
 local M = {}
 
+-- Default options. Override via `require("uiua").setup({...})` — or, with
+-- lazy.nvim, the `opts` table on the plugin spec.
+M.defaults = {
+  -- Run `uiua fmt` on the buffer before every write.
+  format_on_save = true,
+  -- Attach the official `uiua lsp` server (semantic highlighting, hover, …).
+  lsp = true,
+  -- Extra config merged into `vim.lsp.start` (e.g. on_attach, capabilities).
+  server = {},
+}
+
+M.config = vim.deepcopy(M.defaults)
+
+function M.setup(opts)
+  M.config = vim.tbl_deep_extend("force", M.defaults, opts or {})
+end
+
 -- Format `bufnr` in place by piping its contents through `uiua fmt --io`.
 -- Preserves cursor/scroll position and only touches the buffer if the
 -- formatter actually changed something.
@@ -35,15 +52,17 @@ end
 -- highlighting, hover, diagnostics, etc. No-op if disabled or uiua is missing.
 function M.start_lsp(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
-  if vim.g.uiua_lsp == false or vim.fn.executable("uiua") == 0 then
+  if not M.config.lsp or vim.fn.executable("uiua") == 0 then
     return
   end
 
-  vim.lsp.start({
+  local cfg = vim.tbl_deep_extend("force", {
     name = "uiua",
     cmd = { "uiua", "lsp" },
     root_dir = vim.fs.root(bufnr, { ".git", "main.ua" }) or vim.fn.getcwd(),
-  }, { bufnr = bufnr })
+  }, M.config.server or {})
+
+  vim.lsp.start(cfg, { bufnr = bufnr })
 end
 
 return M
