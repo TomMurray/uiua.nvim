@@ -9,6 +9,7 @@ if not ok then
   return
 end
 
+uiua.ensure_highlights()
 uiua.start_lsp(0)
 
 -- :UiuaFormat for on-demand formatting.

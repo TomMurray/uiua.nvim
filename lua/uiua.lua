@@ -9,12 +9,62 @@ M.defaults = {
   lsp = true,
   -- Extra config merged into `vim.lsp.start` (e.g. on_attach, capabilities).
   server = {},
+  -- Link uiua's custom LSP semantic-token types to standard highlight groups
+  -- so the server's arity-aware colouring actually shows. Colourschemes don't
+  -- style `@lsp.type.<uiua_*>` by default.
+  highlights = true,
 }
 
 M.config = vim.deepcopy(M.defaults)
 
+-- uiua lsp semantic-token type -> standard highlight group.
+local SEMANTIC_LINKS = {
+  uiua_number      = "Number",
+  uiua_string      = "String",
+  uiua_constant    = "Constant",
+  noadic_function  = "Constant",
+  monadic_function = "Function",
+  dyadic_function  = "Operator",
+  triadic_function = "Operator",
+  tetradic_function = "Operator",
+  stack_function   = "Delimiter",
+  monadic_modifier = "Keyword",
+  dyadic_modifier  = "PreProc",
+  triadic_modifier = "PreProc",
+  uiua_module      = "Include",
+}
+
+-- Link the custom `@lsp.type.<token>` groups. `default = true` so a user's own
+-- definitions win. Must re-run after `:colorscheme` clears highlight groups.
+function M.apply_highlights()
+  if not M.config.highlights then
+    return
+  end
+  for token, group in pairs(SEMANTIC_LINKS) do
+    vim.api.nvim_set_hl(0, "@lsp.type." .. token, { link = group, default = true })
+  end
+end
+
+-- One-time global wiring (idempotent): apply highlight links now and re-apply
+-- whenever the colourscheme changes. Safe to call from both setup() and the
+-- ftplugin, so it works even when setup() is never called.
+function M.ensure_highlights()
+  if M._hl_inited then
+    return
+  end
+  M._hl_inited = true
+  M.apply_highlights()
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("UiuaHighlights", { clear = true }),
+    callback = function()
+      M.apply_highlights()
+    end,
+  })
+end
+
 function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", M.defaults, opts or {})
+  M.ensure_highlights()
 end
 
 -- Format `bufnr` in place by piping its contents through `uiua fmt --io`.

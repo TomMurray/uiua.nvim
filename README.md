@@ -40,7 +40,28 @@ opts = {
   lsp = true,             -- attach the official `uiua lsp` server
   server = {},            -- extra config merged into vim.lsp.start
                           -- (e.g. on_attach, capabilities, root_dir)
+  highlights = true,      -- link uiua's LSP semantic-token types to
+                          -- standard highlight groups (see below)
 }
+```
+
+### Highlighting
+
+Two layers, complementary:
+
+- **`syntax/uiua.vim`** — a regex base layer that colours glyphs by arity,
+  comments, strings and numbers. Works instantly and with no `uiua` binary.
+- **`uiua lsp` semantic tokens** — a precise overlay that distinguishes
+  noadic / monadic / dyadic / triadic / tetradic functions, modifiers and
+  modules. More accurate and always matches your installed `uiua` version.
+
+Colourschemes don't style uiua's custom `@lsp.type.*` groups, so with
+`highlights = true` (default) this plugin links them to standard groups
+(`Function`, `Operator`, `Keyword`, …). Set `highlights = false` to opt out, or
+define your own links — `default = true` means yours always win:
+
+```lua
+vim.api.nvim_set_hl(0, "@lsp.type.dyadic_function", { fg = "#89b4fa" })
 ```
 
 Example — turn off format on save and add an `on_attach`:
